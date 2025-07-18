@@ -1,89 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Google OAuth Login</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    #userInfo {
-      margin-top: 20px;
-    }
-  </style>
+  <title>YouTube Info Tool</title>
 </head>
 <body>
-  <h2>Login with Google (OAuth 2.0)</h2>
+  <h2>YouTube Channel Info Tool (OAuth + API Key)</h2>
 
-  <div id="loginDiv">
-    <button onclick="handleAuthClick()">🔐 Sign in with Google</button>
-  </div>
+  <!-- Login Section -->
+  <div id="loginDiv">
+    <button onclick="handleAuthClick()">Sign in with Google</button>
+  </div>
 
-  <div id="userInfo" style="display: none;">
-    <p><strong>👤 Name:</strong> <span id="name"></span></p>
-    <p><strong>📧 Email:</strong> <span id="email"></span></p>
-    <button onclick="handleSignoutClick()">🚪 Logout</button>
-  </div>
+  <!-- User Info -->
+  <div id="userInfo" style="display:none;">
+    <p><strong>Name:</strong> <span id="name"></span></p>
+    <p><strong>Email:</strong> <span id="email"></span></p>
+    <button onclick="handleSignoutClick()">Logout</button>
+  </div>
 
-  <!-- Google Identity Services Library -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <hr>
 
-  <script>
-    const clientId = "722487958803-lqgp0nknafubk8agg3qg3m87o7gla2ll.apps.googleusercontent.com";
-    let tokenClient;
-    let accessToken = null;
+  <!-- YouTube Public Info -->
+  <h3>Enter YouTube Channel ID:</h3>
+  <input type="text" id="channelId" placeholder="e.g. UC_x5XG1OV2P6uZZ5FSM9Ttw" />
+  <button onclick="fetchYouTubeData()">Fetch with API Key</button>
 
-    function handleAuthClick() {
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
-        callback: (response) => {
-          if (response.access_token) {
-            accessToken = response.access_token;
-            fetchUserInfo();
-          } else {
-            alert("Login failed!");
-          }
-        },
-      });
-      tokenClient.requestAccessToken();
-    }
+  <div id="youtubeData"></div>
 
-    function fetchUserInfo() {
-      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.email) {
-          document.getElementById('name').textContent = data.name || "Not Found";
-          document.getElementById('email').textContent = data.email;
-          document.getElementById('loginDiv').style.display = 'none';
-          document.getElementById('userInfo').style.display = 'block';
-        } else {
-          alert("User info not found");
-        }
-      })
-      .catch(error => {
-        console.error("User info fetch error:", error);
-      });
-    }
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script>
+    const apiKey = "AIzaSyDnvWg3pTPMdZhnGvqEgFYPsYe_GdKu2cs";
+    const clientId = "722487958803-lqgp0nknafubk8agg3qg3m87o7gla2ll.apps.googleusercontent.com";
 
-    function handleSignoutClick() {
-      accessToken = null;
-      document.getElementById('loginDiv').style.display = 'block';
-      document.getElementById('userInfo').style.display = 'none';
-    }
-  </script>
+    let tokenClient;
+    let accessToken = null;
+
+    // OAuth Login
+    function handleAuthClick() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+        callback: (response) => {
+          if (response.access_token) {
+            accessToken = response.access_token;
+            fetchUserInfo();
+          }
+        },
+      });
+      tokenClient.requestAccessToken();
+    }
+
+    function fetchUserInfo() {
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('name').textContent = data.name;
+        document.getElementById('email').textContent = data.email;
+        document.getElementById('loginDiv').style.display = 'none';
+        document.getElementById('userInfo').style.display = 'block';
+      });
+    }
+
+    function handleSignoutClick() {
+      accessToken = null;
+      document.getElementById('loginDiv').style.display = 'block';
+      document.getElementById('userInfo').style.display = 'none';
+    }
+
+    // Fetch YouTube Channel Info using API Key
+    function fetchYouTubeData() {
+      const channelId = document.getElementById("channelId").value;
+      const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${apiKey}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data.items.length > 0) {
+            const channel = data.items[0];
+            const output = `
+              <h4>${channel.snippet.title}</h4>
+              <p><strong>Subscribers:</strong> ${channel.statistics.subscriberCount}</p>
+              <p><strong>Views:</strong> ${channel.statistics.viewCount}</p>
+              <p><strong>Description:</strong> ${channel.snippet.description}</p>
+            `;
+            document.getElementById('youtubeData').innerHTML = output;
+          } else {
+            document.getElementById('youtubeData').innerHTML = "No channel found.";
+          }
+        });
+    }
+  </script>
 </body>
 </html>
