@@ -1,98 +1,593 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>YouTube Info Tool</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google API Data Display</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f7f6;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+.container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    padding: 30px 40px;
+    width: 100%;
+    max-width: 900px;
+    box-sizing: border-box;
+    animation: fadeIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+h1 {
+    color: #1a73e8;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 2.2em;
+    font-weight: 700;
+}
+
+h2 {
+    color: #34a853;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+h3 {
+    color: #fbbc05;
+    margin-top: 20px;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    font-weight: 600;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+}
+
+h4 {
+    color: #ea4335;
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+.auth-section {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 20px;
+    border: 1px dashed #c5c5c5;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.auth-section p {
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.data-display-section {
+    margin-top: 30px;
+}
+
+.card-container {
+    background-color: #fdfdfd;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 25px;
+    margin-bottom: 30px;
+    border-left: 5px solid;
+}
+
+#oauth-data-card {
+    border-left-color: #1a73e8;
+}
+
+#api-key-data-card {
+    border-left-color: #34a853;
+}
+
+.data-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.data-list p {
+    background-color: #e8f0fe;
+    border-radius: 6px;
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #4285f4;
+    transition: background-color 0.3s ease;
+}
+
+.data-list p:last-child {
+    margin-bottom: 0;
+}
+
+.data-list p strong {
+    color: #202124;
+    margin-right: 10px;
+    font-weight: 600;
+}
+
+.data-list p span {
+    color: #5f6368;
+    word-break: break-all;
+}
+
+.data-list p.common-data {
+    background-color: #fff3e0; /* Light orange for common data */
+    border-left: 4px solid #fbbc05;
+}
+
+.input-section {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.input-section input[type="text"] {
+    flex-grow: 1;
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-section input[type="text"]:focus {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2);
+}
+
+.input-section button {
+    padding: 12px 25px;
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.input-section button:hover {
+    background-color: #3367d6;
+    transform: translateY(-2px);
+}
+
+.input-section button:active {
+    transform: translateY(0);
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border: 1px solid #ef9a9a;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 1.1em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+    h1 {
+        font-size: 1.8em;
+    }
+    h2 {
+        font-size: 1.5em;
+    }
+    h3 {
+        font-size: 1.2em;
+    }
+    .input-section {
+        flex-direction: column;
+    }
+    .input-section button {
+        width: 100%;
+    }
+}
+</style>
 </head>
 <body>
-  <h2>YouTube Channel Info Tool (OAuth + API Key)</h2>
+    <div class="container">
+        <h1>Google API डेटा डिस्प्ले</h1>
 
-  <!-- Login Section -->
-  <div id="loginDiv">
-    <button onclick="handleAuthClick()">Sign in with Google</button>
-  </div>
+        <div class="auth-section">
+            <p>अपने Gmail से लॉगिन करें:</p>
+            <div id="g_id_onload"
+                 data-client_id="722487958803-lqgp0nknafubk8agg3qg3m87o7gla2ll.apps.googleusercontent.com"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-size="large"
+                 data-theme="outline"
+                 data-text="sign_in_with"
+                 data-shape="rectangular"
+                 data-logo_alignment="left">
+            </div>
+        </div>
 
-  <!-- User Info -->
-  <div id="userInfo" style="display:none;">
-    <p><strong>Name:</strong> <span id="name"></span></p>
-    <p><strong>Email:</strong> <span id="email"></span></p>
-    <button onclick="handleSignoutClick()">Logout</button>
-  </div>
+        <div id="data-display" class="data-display-section" style="display: none;">
+            <h2>प्राप्त जानकारी</h2>
+            <div class="card-container" id="oauth-data-card">
+                <h3>OAuth Client ID द्वारा प्राप्त डेटा</h3>
+                <div class="data-list" id="oauth-data-list">
+                    </div>
+            </div>
 
-  <hr>
+            <div class="card-container" id="api-key-data-card" style="display: none;">
+                <h3>API Key द्वारा प्राप्त डेटा</h3>
+                <div class="data-list" id="api-key-data-list">
+                    </div>
 
-  <!-- YouTube Public Info -->
-  <h3>Enter YouTube Channel ID:</h3>
-  <input type="text" id="channelId" placeholder="e.g. UC_x5XG1OV2P6uZZ5FSM9Ttw" />
-  <button onclick="fetchYouTubeData()">Fetch with API Key</button>
+                <h4>यूट्यूब चैनल/वीडियो डेटा</h4>
+                <div class="input-section">
+                    <input type="text" id="youtube-input" placeholder="चैनल लिंक या वीडियो लिंक दर्ज करें">
+                    <button id="fetch-youtube-data">डेटा प्राप्त करें</button>
+                </div>
+                <div class="data-list" id="youtube-data-list">
+                    </div>
+            </div>
+        </div>
 
-  <div id="youtubeData"></div>
+        <div id="error-message" class="error-message" style="display: none;">
+            <p>कुछ त्रुटि हुई। कृपया पुनः प्रयास करें।</p>
+        </div>
+    </div>
 
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script>
-    const apiKey = "AIzaSyDnvWg3pTPMdZhnGvqEgFYPsYe_GdKu2cs";
-    const clientId = "722487958803-lqgp0nknafubk8agg3qg3m87o7gla2ll.apps.googleusercontent.com";
+<script>
+// --- Configuration ---
+const API_KEY = "AIzaSyDnvWg3pTPMdZhnGvqEgFYPsYe_GdKu2cs";
+const CLIENT_ID = "722487958803-lqgp0nknafubk8agg3qg3m87o7gla2ll.apps.googleusercontent.com";
+const SCOPES = 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
 
-    let tokenClient;
-    let accessToken = null;
+// --- DOM Elements ---
+const dataDisplaySection = document.getElementById('data-display');
+const oauthDataList = document.getElementById('oauth-data-list');
+const apiKeyDataCard = document.getElementById('api-key-data-card');
+const apiKeyDataList = document.getElementById('api-key-data-list');
+const youtubeInput = document.getElementById('youtube-input');
+const fetchYoutubeDataBtn = document.getElementById('fetch-youtube-data');
+const youtubeDataList = document.getElementById('youtube-data-list');
+const errorMessage = document.getElementById('error-message');
 
-    // OAuth Login
-    function handleAuthClick() {
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
-        callback: (response) => {
-          if (response.access_token) {
-            accessToken = response.access_token;
-            fetchUserInfo();
-          }
+let gapiInited = false;
+let gisInited = false;
+
+// --- Utility Functions ---
+
+function showErrorMessage(message = 'कुछ त्रुटि हुई। कृपया पुनः प्रयास करें।') {
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+    setTimeout(() => {
+        errorMessage.style.display = 'none';
+    }, 5000); // Hide after 5 seconds
+}
+
+function displayData(dataListElement, label, value, isCommon = false) {
+    if (value === undefined || value === null || value === '') {
+        return; // Don't display empty values
+    }
+    const p = document.createElement('p');
+    p.innerHTML = `<strong>${label}:</strong> <span>${value}</span>`;
+    if (isCommon) {
+        p.classList.add('common-data');
+    }
+    dataListElement.appendChild(p);
+}
+
+// --- Google API Initialization ---
+
+function gapiLoaded() {
+    gapi.load('client', initializeGapiClient);
+}
+
+async function initializeGapiClient() {
+    await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: ["https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest"],
+    });
+    gapiInited = true;
+    console.log('GAPI client initialized');
+    // We can now call API Key related functions
+    // fetchAPIKeyData(); // Fetch common API key data immediately
+}
+
+function gisLoaded() {
+    google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+                console.log('OAuth token obtained:', tokenResponse.access_token);
+                fetchOAuthData(tokenResponse.access_token);
+                // After successful OAuth, show API key section
+                apiKeyDataCard.style.display = 'block';
+                // Trigger API Key data fetch as well
+                fetchAPIKeyData();
+            } else {
+                showErrorMessage('Gmail लॉगिन विफल रहा।');
+            }
         },
-      });
-      tokenClient.requestAccessToken();
-    }
+    });
+    gisInited = true;
+    console.log('GIS client initialized');
+}
 
-    function fetchUserInfo() {
-      fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-        },
-      })
-      .then(response => response.json())
-      .then(data => {
-        document.getElementById('name').textContent = data.name;
-        document.getElementById('email').textContent = data.email;
-        document.getElementById('loginDiv').style.display = 'none';
-        document.getElementById('userInfo').style.display = 'block';
-      });
-    }
+// Ensure both libraries are loaded before proceeding
+window.onload = () => {
+    gapiLoaded(); // Load GAPI for API Key
+    gisLoaded(); // Load GIS for OAuth
+};
 
-    function handleSignoutClick() {
-      accessToken = null;
-      document.getElementById('loginDiv').style.display = 'block';
-      document.getElementById('userInfo').style.display = 'none';
-    }
+// --- OAuth Client ID Data Fetch ---
 
-    // Fetch YouTube Channel Info using API Key
-    function fetchYouTubeData() {
-      const channelId = document.getElementById("channelId").value;
-      const url = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${apiKey}`;
-
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
-          if (data.items.length > 0) {
-            const channel = data.items[0];
-            const output = `
-              <h4>${channel.snippet.title}</h4>
-              <p><strong>Subscribers:</strong> ${channel.statistics.subscriberCount}</p>
-              <p><strong>Views:</strong> ${channel.statistics.viewCount}</p>
-              <p><strong>Description:</strong> ${channel.snippet.description}</p>
-            `;
-            document.getElementById('youtubeData').innerHTML = output;
-          } else {
-            document.getElementById('youtubeData').innerHTML = "No channel found.";
-          }
+async function fetchOAuthData(accessToken) {
+    try {
+        const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
         });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("OAuth Client ID Data:", data);
+
+        oauthDataList.innerHTML = ''; // Clear previous data
+        dataDisplaySection.style.display = 'block';
+
+        displayData(oauthDataList, 'यूजर आईडी', data.id, true); // Common
+        displayData(oauthDataList, 'नाम', data.name);
+        displayData(oauthDataList, 'दिया गया नाम', data.given_name);
+        displayData(oauthDataList, 'पारिवारिक नाम', data.family_name);
+        displayData(oauthDataList, 'ईमेल', data.email);
+        displayData(oauthDataList, 'ईमेल सत्यापित', data.verified_email ? 'हाँ' : 'नहीं');
+        displayData(oauthDataList, 'प्रोफ़ाइल चित्र', `<a href="${data.picture}" target="_blank">देखें</a>`);
+        displayData(oauthDataList, 'लिंग', data.gender);
+        displayData(oauthDataList, 'भाषा', data.locale);
+    } catch (error) {
+        console.error('Error fetching OAuth data:', error);
+        showErrorMessage('OAuth डेटा प्राप्त करने में त्रुटि हुई।');
     }
-  </script>
-</body>
-</html>
+}
+
+// Function to handle Google Sign-In response
+function handleCredentialResponse(response) {
+    if (response.credential) {
+        // This is where the JWT token for login comes, but for API calls, we need the access_token from `google.accounts.oauth2.initTokenClient`
+        // We will manually trigger the token request here
+        google.accounts.oauth2.tokenClient.requestAccessToken();
+    } else {
+        showErrorMessage('लॉगिन क्रेडेंशियल प्राप्त नहीं हुए।');
+    }
+}
+
+// --- API Key Data Fetch ---
+
+const commonData = new Set(); // To track common data to avoid duplication
+
+async function fetchAPIKeyData() {
+    if (!gapiInited) {
+        showErrorMessage('Google API क्लाइंट अभी तक आरंभ नहीं हुआ है।');
+        return;
+    }
+
+    try {
+        // Example: Fetching some public YouTube statistics using API Key
+        // For demonstration, let's fetch statistics for a popular public channel
+        // This is dummy data to show how API Key can fetch public info
+        // Replace with actual API calls if you have specific public data needs
+        apiKeyDataList.innerHTML = ''; // Clear previous data
+
+        // Example: Public Data Access - Placeholder for general public API key capabilities
+        displayData(apiKeyDataList, 'पब्लिक डेटा एक्सेस', 'कुछ सार्वजनिक डेटा जैसे YouTube वीडियो, चैनल जानकारी, आदि देखी जा सकती है।', true);
+        commonData.add('पब्लिक डेटा एक्सेस'); // Mark as common
+
+        // Example: Placeholder for more public data accessible via API key
+        displayData(apiKeyDataList, 'YouTube सार्वजनिक वीडियो खोज', 'किसी भी सार्वजनिक YouTube वीडियो को खोजा और देखा जा सकता है।');
+        displayData(apiKeyDataList, 'YouTube चैनल खोज', 'सार्वजनिक YouTube चैनलों को खोजा जा सकता है और उनके सार्वजनिक आँकड़े देखे जा सकते हैं।');
+
+    } catch (error) {
+        console.error('Error fetching API Key data:', error);
+        showErrorMessage('API Key डेटा प्राप्त करने में त्रुटि हुई।');
+    }
+}
+
+// --- YouTube Data Fetch (using API Key) ---
+
+fetchYoutubeDataBtn.addEventListener('click', async () => {
+    const input = youtubeInput.value.trim();
+    if (!input) {
+        showErrorMessage('कृपया एक YouTube चैनल लिंक, चैनल ID, वीडियो लिंक, या वीडियो ID दर्ज करें।');
+        return;
+    }
+
+    youtubeDataList.innerHTML = ''; // Clear previous results
+
+    let channelId = null;
+    let videoId = null;
+
+    // Regex to extract Channel ID from URL
+    const channelIdRegex = /(?:youtube\.com\/(?:c\/|channel\/|user\/)|youtu\.be\/user\/)([a-zA-Z0-9_-]{24})/;
+    const customUrlRegex = /youtube\.com\/c\/([a-zA-Z0-9_-]+)/;
+    const legacyUserRegex = /youtube\.com\/user\/([a-zA-Z0-9_-]+)/;
+    const videoUrlRegex = /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+
+
+    // Check if it's a direct Channel ID
+    if (input.match(/^[a-zA-Z0-9_-]{24}$/)) {
+        channelId = input;
+    } else if (input.match(channelIdRegex)) {
+        channelId = input.match(channelIdRegex)[1];
+    } else if (input.match(videoUrlRegex)) {
+        videoId = input.match(videoUrlRegex)[1];
+    } else if (customUrlRegex.test(input)) {
+        // For custom URLs, we need to search by custom URL name first to get the channel ID
+        try {
+            const username = input.match(customUrlRegex)[1];
+            const searchResponse = await gapi.client.youtube.channels.list({
+                'part': ['snippet'],
+                'forHandle': username // Use forHandle for custom URLs
+            });
+            if (searchResponse.result.items.length > 0) {
+                channelId = searchResponse.result.items[0].id;
+            }
+        } catch (error) {
+            console.warn('Could not resolve custom URL to channel ID directly, trying search:', error);
+            // Fallback to search if direct resolution fails
+        }
+    } else if (legacyUserRegex.test(input)) {
+         // For legacy user URLs, search by username
+        try {
+            const username = input.match(legacyUserRegex)[1];
+            const searchResponse = await gapi.client.youtube.channels.list({
+                'part': ['snippet'],
+                'forUsername': username
+            });
+            if (searchResponse.result.items.length > 0) {
+                channelId = searchResponse.result.items[0].id;
+            }
+        } catch (error) {
+            console.warn('Could not resolve legacy user URL to channel ID directly, trying search:', error);
+        }
+    }
+
+
+    // If it's a video ID or a video URL was provided
+    if (videoId) {
+        await fetchVideoDetails(videoId);
+    }
+    // If it's a channel ID or a channel URL was resolved to ID
+    else if (channelId) {
+        await fetchChannelDetails(channelId);
+    }
+    // If nothing matched, try searching generally for a channel (last resort for ambiguous input)
+    else {
+        // If not a direct channel/video ID/URL, assume it's a search query for a channel
+        await searchAndFetchChannel(input);
+    }
+});
+
+
+async function fetchChannelDetails(channelId) {
+    try {
+        const response = await gapi.client.youtube.channels.list({
+            'part': ['snippet', 'statistics', 'brandingSettings'],
+            'id': channelId
+        });
+
+        if (response.result.items.length > 0) {
+            const channel = response.result.items[0];
+            displayData(youtubeDataList, 'चैनल का नाम', channel.snippet.title);
+            displayData(youtubeDataList, 'चैनल ID', channel.id);
+            displayData(youtubeDataList, 'चैनल लिंक', `https://www.youtube.com/channel/${channel.id}`);
+            displayData(youtubeDataList, 'सदस्य', parseInt(channel.statistics.subscriberCount).toLocaleString());
+            displayData(youtubeDataList, 'कुल वीडियो', parseInt(channel.statistics.videoCount).toLocaleString());
+            displayData(youtubeDataList, 'कुल दृश्य', parseInt(channel.statistics.viewCount).toLocaleString());
+            displayData(youtubeDataList, 'विवरण', channel.snippet.description);
+            if (channel.brandingSettings && channel.brandingSettings.image && channel.brandingSettings.image.bannerExternalUrl) {
+                displayData(youtubeDataList, 'चैनल बैनर', `<a href="${channel.brandingSettings.image.bannerExternalUrl}" target="_blank">देखें</a>`);
+            }
+            if (channel.snippet.thumbnails && channel.snippet.thumbnails.high) {
+                displayData(youtubeDataList, 'प्रोफ़ाइल चित्र', `<a href="${channel.snippet.thumbnails.high.url}" target="_blank">देखें</a>`);
+            }
+        } else {
+            displayData(youtubeDataList, 'त्रुटि', 'चैनल नहीं मिला।');
+        }
+    } catch (error) {
+        console.error('Error fetching YouTube channel details:', error);
+        showErrorMessage('YouTube चैनल विवरण प्राप्त करने में त्रुटि हुई।');
+    }
+}
+
+async function fetchVideoDetails(videoId) {
+    try {
+        const response = await gapi.client.youtube.videos.list({
+            'part': ['snippet', 'statistics', 'contentDetails'],
+            'id': videoId
+        });
+
+        if (response.result.items.length > 0) {
+            const video = response.result.items[0];
+            displayData(youtubeDataList, 'वीडियो शीर्षक', video.snippet.title);
+            displayData(youtubeDataList, 'वीडियो ID', video.id);
+            displayData(youtubeDataList, 'वीडियो लिंक', `https://www.youtube.com/watch?v=${video.id}`);
+            displayData(youtubeDataList, 'चैनल का नाम', video.snippet.channelTitle);
+            displayData(youtubeDataList, 'चैनल ID', video.snippet.channelId);
+            displayData(youtubeDataList, 'दृश्य', parseInt(video.statistics.viewCount || 0).toLocaleString());
+            displayData(youtubeDataList, 'पसंद', parseInt(video.statistics.likeCount || 0).toLocaleString());
+            displayData(youtubeDataList, 'टिप्पणियाँ', parseInt(video.statistics.commentCount || 0).toLocaleString());
+            displayData(youtubeDataList, 'विवरण', video.snippet.description.substring(0, 200) + '...'); // Truncate description
+            displayData(youtubeDataList, 'प्रकाशन तिथि', new Date(video.snippet.publishedAt).toLocaleDateString());
+            if (video.snippet.thumbnails && video.snippet.thumbnails.high) {
+                displayData(youtubeDataList, 'थंबनेल', `<a href="${video.snippet.thumbnails.high.url}" target="_blank">देखें</a>`);
+            }
+            // You can add more details from contentDetails if needed, e.g., duration
+            displayData(youtubeDataList, 'अवधि', formatDuration(video.contentDetails.duration));
+
+        } else {
+            displayData(youtubeDataList, 'त्रुटि', 'वीडियो नहीं मिला।');
+        }
+    } catch (error) {
+        console.error('Error fetching YouTube video details:', error);
+        showErrorMessage('YouTube वीडियो विवरण प्राप्त करने में त्रुटि हुई।');
+    }
+}
+
+// Helper function to format ISO 8601 duration (e.g., PT1H30M5S)
+function formatDuration(isoDuration) {
+    const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+    const matches = isoDuration.match(regex);
+    if (!matches) return isoDuration;
+
+    const hours = parseInt(matches[1] || 0);
+    const minutes = parseInt(matches[2] || 0);
+    const seconds = parseInt(matches[3] || 0);
+
+    const parts = [];
+    if (hours > 0) parts.push(`${hours} घंटे`);
+    if (minutes > 0) parts.push(`${minutes} मिनट`);
+    if (seconds > 0) parts.push(`${seconds} सेकंड`);
+
+    return parts.length > 0 ? parts.join(' ') : '0 सेकंड';
+}
+
+
+async functi
